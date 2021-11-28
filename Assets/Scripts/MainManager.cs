@@ -18,7 +18,13 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
+    // // // // // // 
+    [SerializeField] StartMenuUI menuUI;
+    [SerializeField] Text playerNameText;
+    private string playerNameString;
+
+    [SerializeField] BestScore bestScoreText;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -36,6 +42,9 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+        playerNameString = StartMenuUI.playerNameString;
+        //Debug.Log("Player name: " + playerNameString);
+        playerNameText.text = playerNameString;
     }
 
     private void Update()
@@ -72,5 +81,37 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        UpdateHighScoreTable();
+    }
+
+    public void UpdateHighScoreTable()
+    {
+        StartMenuUI.HighScoreTable newHighScoreTable = new StartMenuUI.HighScoreTable();
+        StartMenuUI.HighScoreTable existingTable = StartMenuUI.highScoreTable;
+        bool addedNewEntry = false;
+
+        for (int i =0; i < StartMenuUI.highScoreTable.entries.Count; i++)
+        {
+            if (!addedNewEntry && m_Points > existingTable.entries[i].score)
+            {
+                addedNewEntry = true;
+                StartMenuUI.HighScoreTable.Entry newEntry = new StartMenuUI.HighScoreTable.Entry
+                {
+                    name = playerNameString,
+                    score = m_Points
+                    };
+
+                newHighScoreTable.entries.Add(newEntry);
+
+                i++;
+            }
+            newHighScoreTable.entries.Add(existingTable.entries[i]);
+        }
+        if (addedNewEntry)
+        {
+            menuUI.ScoreDataSave(newHighScoreTable);
+            StartMenuUI.highScoreTable = newHighScoreTable;
+            bestScoreText.SetBestScore(StartMenuUI.highScoreTable);
+        }
     }
 }
